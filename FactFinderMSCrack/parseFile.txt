@@ -1,0 +1,40 @@
+  private static com.bluestripe.license.License parseFile(java.io.FileInputStream paramFileInputStream) throws java.lang.Exception {
+    java.util.Properties localProperties = new java.util.Properties();
+    localProperties.load(paramFileInputStream);
+
+    byte[] arrayOfByte1 =  com.bluestripe.util.ByteUtils.hexStringNoSpacesToBytes(localProperties.getProperty("signature"));
+
+    String str1 = localProperties.getProperty("type");
+    com.bluestripe.license.LicenseType localLicenseType;
+    if ((str1 == null) || (str1.equals("0"))) {
+      localLicenseType = com.bluestripe.license.LicenseType.FactFinder;
+    }
+    else if (str1.equals("1")) {
+      localLicenseType = com.bluestripe.license.LicenseType.FactFinderTrial;
+    }
+    else {
+      localLicenseType = com.bluestripe.license.LicenseType.valueOf(str1);
+    }
+
+    String str2 = localProperties.getProperty("validUntil");
+    Long localLong = "unlimited".equalsIgnoreCase(str2) ? null : Long.valueOf(Long.parseLong(str2));
+
+    String str3 = localProperties.getProperty("numCollectors");
+    Integer localInteger = "unlimited".equalsIgnoreCase(str3) ? null : Integer.valueOf(Integer.parseInt(str3));
+
+    String str4 = localProperties.getProperty("productVersion");
+
+    String str5 = localProperties.getProperty(localLicenseType.isExpressEdition() ? "collectorIpOrHostName" : "ipOrHostName");
+
+    com.bluestripe.license.License localLicense = new com.bluestripe.license.License(localLicenseType, localProperties.getProperty("licensee"), localProperties.getProperty("licenseId"), localInteger, localLong, str4, str5);
+
+    byte[] arrayOfByte2 = localLicense.getContentBytes();
+
+    java.security.Signature localSignature = java.security.Signature.getInstance("SHA1withDSA");
+    java.security.PublicKey localPublicKey = getPublicKey();
+    localSignature.initVerify(localPublicKey);
+    localSignature.update(arrayOfByte2);
+   
+    return localLicense;
+  }
+  
